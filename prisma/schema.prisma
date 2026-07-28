@@ -1,0 +1,48 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+enum MessageType {
+  USER_INPUT
+  MODEL_OUTPUT
+}
+
+model User {
+  clerkId   String   @id @map("clerk_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  chats     Chat[]
+
+  @@map("users")
+}
+
+model Chat {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id")
+  title     String    @default("New Chat")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
+  messages  Message[]
+
+  @@map("chats")
+}
+
+model Message {
+  id            String   @id @default(uuid()) @db.Uuid
+  chatId        String   @map("chat_id") @db.Uuid
+  type          MessageType
+  content       String   @db.Text
+  interactionId String?  @map("interaction_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  chat          Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, createdAt(sort: Desc)])
+  @@map("messages")
+}

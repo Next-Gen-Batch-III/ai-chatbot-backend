@@ -1,7 +1,11 @@
 # DEVELOPMENT GUIDE
 ## 1. Technologies used
-* expressJs
+* Express.js
+* Prisma ORM
+* PostgreSQL with pgvector
+* Docker / Docker Compose
 * Clerk (Authentication and Authorization)
+* Google Gemini API
 
 ---
 
@@ -32,3 +36,39 @@ To include user roles in the Clerk JWT session token, customize the session temp
 4. Save the changes. The session token will now include the user's public metadata, allowing your backend to read `auth.sessionClaims.metadata.role` (or whichever key you use inside `public_metadata`) for authorization logic.
 
 > **Tip:** Store the role under a `role` key inside `public_metadata` (e.g., `{ "role": "admin" }`) so it is easy to access from `sessionClaims.metadata.role`. See [Create Test User](test/createTestUser.js)
+
+---
+
+## 4. Run the database locally with Docker
+
+* Make sure `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` are set in your `.env` file.
+* Start the database container:
+
+```bash
+docker compose up -d postgres
+```
+
+* The container uses `init.sql` to enable the `vector` extension on first startup.
+
+---
+
+## 5. Set up Prisma
+
+* Make sure `DATABASE_URL` points to the local Docker database.
+* Generate the Prisma client after any schema change:
+
+```bash
+npx prisma generate
+```
+
+* Apply schema changes to the local database:
+
+```bash
+npx prisma migrate dev
+```
+
+* Open Prisma Studio to inspect and edit the database:
+
+```bash
+npm run studio
+```

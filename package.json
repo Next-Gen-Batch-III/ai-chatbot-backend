@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "studio": "prisma studio"
   },
   "repository": {
     "type": "git",
@@ -21,12 +22,15 @@
   "homepage": "https://github.com/Next-Gen-Batch-III/ai-chatbot-backend#readme",
   "dependencies": {
     "@clerk/express": "^2.1.39",
+    "@google/genai": "^2.13.0",
+    "@prisma/client": "^7.9.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "pg": "^8.22.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "prisma": "^7.9.1"
   }
 }
