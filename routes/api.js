@@ -1,6 +1,7 @@
 import express from "express";
 import checkRole from "../middlewares/checkRole.js";
 import authenticate from "../middlewares/authenticate.js";
+import chatRoutes from "../modules/chat/chat.route.js";
 
 const router = express.Router();
 
@@ -16,6 +17,9 @@ router.get("/private/test", authenticate, (req, res) => {
 router.get("/admin/test", checkRole(["admin"]), (req, res) => {
     res.json({ message: "This is a private endpoint for admin users." });
 });
+
+router.use(authenticate);
+router.use("/chat", chatRoutes);
 
 
 export default router;
