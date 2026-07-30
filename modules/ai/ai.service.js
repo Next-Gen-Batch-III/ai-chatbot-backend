@@ -3,12 +3,13 @@ import prisma from "../../configs/db.js";
 import { MessageType } from "@prisma/client";
 
 class AIService {
-    async generateResponse(prompt) {
+    async generateResponse(prompt, interactionId = null) {
         try {
             const res = await ai.interactions.create({
                 model: "gemini-3.5-flash-lite",
                 input: prompt,
                 type: MessageType.USER_INPUT,
+                previous_interaction_id: interactionId,
             })
             return res;
         } catch (error) {
