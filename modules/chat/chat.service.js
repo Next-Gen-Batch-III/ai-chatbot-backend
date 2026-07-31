@@ -6,7 +6,7 @@ import util from "util";
 
 class ChatService {
 
-    async getAIResponse(prompt, userId, chatId) {
+    async getAIResponse(prompt, userId, chatId, res) {
         let newChatId = chatId;
         if(!chatId){
             try {
@@ -25,20 +25,34 @@ class ChatService {
 
         try {
             const chat = await prisma.chat.findUnique({
-                where: { id: newChatId },
+                where: { id: newChatId, userId: userId },
             });
             if (!chat) {
                 throw new Error(`Chat not found.`);
             }
-            const interactionId = await prisma.message.findFirst({
+
+            const prevInteractionId = await prisma.message.findFirst({
                 where: { chatId: newChatId, type: MessageType.MODEL_OUTPUT },
                 orderBy: { createdAt: 'desc' },
             }).then(message => message ? message.interactionId : null);
-            const response = await aiService.generateResponse(prompt, interactionId);
-            console.log({
-                chatId_value: chatId,
-                interactionId_value: response.id,      
-            });
+
+            let content = '';
+            let newInteractionId = null;
+
+            const response = aiService.generateResponse(prompt, prevInteractionId);
+
+            for await (const chunk of response){
+                newInteractionId = chunk.id || newInteractionId;
+                res.write(`data: ${JSON.stringify({
+                    ...chunk,
+                    chatId: newChatId
+                })}\n\n`);
+
+                if (chunk.type === "text") {
+                    content += chunk.content;
+                }
+            }
+
             const newMessage = await prisma.message.create({
                 data: {
                     chatId: newChatId,
@@ -51,11 +65,16 @@ class ChatService {
                 data: {
                     chatId: newChatId,
                     type: MessageType.MODEL_OUTPUT,
-                    content: response.output_text,
-                    interactionId: response.id || null,
+                    content: content,
+                    interactionId: newInteractionId
                 },
             });
-            return { response: messageResponseMapper(response), chatId: newChatId };
+            res.write(`data: ${JSON.stringify({
+                status: "completed",
+                chatId: newChatId,
+            })}`)
+
+            res.end();
         } catch (error) {
             console.error("Error in ChatService:", util.inspect(error, { depth: null, showHidden: false, colors: true }));
             throw error;
