@@ -25,10 +25,13 @@ class ChatService {
 
         try {
             const chat = await prisma.chat.findUnique({
-                where: { id: newChatId, userId: userId },
+                where: { id: newChatId },
             });
             if (!chat) {
                 throw new Error(`Chat not found.`);
+            }
+            if(chat.userId !== userId){
+                throw new Error(`Unauthorized access to chat.`);
             }
 
             const prevInteractionId = await prisma.message.findFirst({

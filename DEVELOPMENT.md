@@ -6,6 +6,7 @@
 * Docker / Docker Compose
 * Clerk (Authentication and Authorization)
 * Google Gemini API
+* Zod (Validate Request)
 
 ---
 
