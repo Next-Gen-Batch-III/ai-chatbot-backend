@@ -75,6 +75,7 @@ class ChatService {
             res.write(`data: ${JSON.stringify({
                 status: "completed",
                 chatId: newChatId,
+                chatTitle: chat.title,
             })}`)
 
             res.end();
@@ -83,6 +84,38 @@ class ChatService {
             throw error;
         }
     }
+
+    async getAllChats(userId) {
+        try {
+            const chats = await prisma.chat.findMany({
+                where: { userId: userId },
+                orderBy: { createdAt: 'desc' },
+            });
+            return chats;
+        } catch (error) {
+            console.error("Error fetching all chats:", error);
+            throw error;
+        }
+    }
+
+    async getChatById(chatId, userId) {
+        try {
+            const chat = await prisma.chat.findUnique({
+                where: { id: chatId },
+            });
+            if (!chat) {
+                return null;
+            }
+            if(chat.userId !== userId){
+                throw new Error("You do not have permission to access this chat.");
+            }
+            return chat;
+        } catch (error) {
+            console.error("Error fetching chat by ID:", error);
+            throw error;
+        }
+    }
+
 }
 
 export default new ChatService();

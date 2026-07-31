@@ -25,10 +25,11 @@ export const chatRequestSchema = z.object({
     }),
 });
 
-export const getAllChatSchema = z.object({
-    query: z.object({
-        useId: z.string()
-    })
+export const getChatByIdSchema = z.object({
+    params: z.object({
+        chatId: z.string().uuid("Invalid chatId format"),
+    }),
 });
+
 
 

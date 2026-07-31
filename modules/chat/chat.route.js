@@ -1,7 +1,6 @@
 import { Router } from "express";
-import authenticate from "../../middlewares/authenticate.js";
 import chatController from "./chat.controller.js";
-import { chatRequestSchema, getAllChatSchema } from "./chat.schema.js";
+import { chatRequestSchema, getChatByIdSchema } from "./chat.schema.js";
 import validateSchema from "../../middlewares/validateSchema.js";
 
 const router = Router();
@@ -62,6 +61,53 @@ router.post("/", validateSchema(chatRequestSchema) , chatController.getAIRespons
  *         description: Chat session not found.
  */
 router.post("/:chatId",validateSchema(chatRequestSchema), chatController.getAIResponse);
+
+
+/**
+ * @swagger
+ * /api/chat:
+ *   get:
+ *     summary: Retrieve all chat sessions for the authenticated user.
+ *     tags:
+ *       - Chat
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of chat sessions.
+ *       500:
+ *         description: An error occurred while fetching chats.
+ */
+router.get("/", chatController.getAllChats);
+
+
+/**
+ * @swagger
+ * /api/chat/{chatId}:
+ *   get:
+ *     summary: Retrieve a specific chat session by its ID.
+ *     tags:
+ *       - Chat
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique ID of the chat session to retrieve.
+ *         example: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *     responses:
+ *       200:
+ *         description: The requested chat session.
+ *       404:
+ *         description: Chat session not found.
+ *       500:
+ *         description: An error occurred while fetching the chat session.
+ */
+router.get("/:chatId", validateSchema(getChatByIdSchema), chatController.getChatById);
 
 
 export default router;

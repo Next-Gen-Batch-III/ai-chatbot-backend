@@ -46,3 +46,12 @@ model Message {
   @@index([chatId, createdAt(sort: Desc)])
   @@map("messages")
 }
+
+model SystemPrompt {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("system_prompts")
+}
