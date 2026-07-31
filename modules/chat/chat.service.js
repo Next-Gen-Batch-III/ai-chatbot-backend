@@ -28,10 +28,10 @@ class ChatService {
                 where: { id: newChatId },
             });
             if (!chat) {
-                throw new Error(`Chat not found.`);
+                res.status(404).json({ error: "Chat not found." });
             }
             if(chat.userId !== userId){
-                throw new Error(`Unauthorized access to chat.`);
+                res.status(403).json({ error: "You do not have permission to access this chat." });
             }
 
             const prevInteractionId = await prisma.message.findFirst({
