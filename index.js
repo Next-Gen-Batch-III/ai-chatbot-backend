@@ -5,10 +5,12 @@ import { clerkMiddleware, getAuth } from "@clerk/express";
 import apiRoutes from "./routes/api.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import notFoundHandler from "./middlewares/notFoundHandler.js";
+import setupSwagger from "./swagger.js";
 
 dotenv.config();
 
 const app = express();
+setupSwagger(app);
 
 app.use(cors({ origin: process.env.CORS_ORIGIN }));
 app.use(express.json());
@@ -24,5 +26,6 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
 })
 
