@@ -21,7 +21,7 @@ class ChatService {
         return chat;
     }
     
-    async *createChat(userId, prompt) {
+    async *createChat(prompt, userId) {
         const chat = await prisma.chat.create({
             data: {
                 userId: userId,

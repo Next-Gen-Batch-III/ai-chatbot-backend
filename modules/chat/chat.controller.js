@@ -9,10 +9,23 @@ class ChatController {
         res.setHeader('Connection', 'keep-alive');
 
         try {
-            const response = await chatService.getAIResponse(prompt, req.userId, req.params.chatId, res);
+            const response = chatService.createChat(prompt, req.userId);
+            
+            for await (const chunk of response) {
+                res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+            }
+
+            res.end();
         } catch (error) {
             console.error("Error in ChatController:", error);
-            res.status(500).json({ error: "An error occurred while processing your request." });
+            if (!res.headersSent) {
+                return res.status(error.statusCode || 500).json(
+                    { error: error.message || "An error occurred while processing your request." }
+                );
+            }
+            res.write(`data: ${JSON.stringify({
+                error: error.message || "An error occurred while processing your request."
+            })}\n\n`);
         }
     }
 

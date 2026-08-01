@@ -3,7 +3,7 @@ import prisma from "../../configs/db.js";
 import { MessageType } from "@prisma/client";
 
 class AIService {
-    async *generateResponse(prompt, prevIteractionId = null) {
+    async *generateResponse(prompt, systemInstruction, prevIteractionId = null) {
         try {
             const res = await ai.interactions.create({
                 model: "gemini-3.5-flash-lite",
@@ -11,6 +11,7 @@ class AIService {
                 type: MessageType.USER_INPUT,
                 previous_interaction_id: prevIteractionId,
                 stream: true,
+                system_instruction: systemInstruction,
                 generation_config: {
                     thinking_summaries: "auto"
                 }

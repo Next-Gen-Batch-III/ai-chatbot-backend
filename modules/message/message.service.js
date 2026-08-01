@@ -12,6 +12,11 @@ class MessageService {
     async *getAIResponse(prompt, userId, chatId) {
         const chat = await chatService.validateChat(chatId, userId);
 
+        const systemInstruction = await prisma.systemPrompt.findFirst({
+            select: { content: true },
+        });
+
+
         const prevInteractionId = await prisma.message.findFirst({
             where: { chatId: chatId, type: MessageType.MODEL_OUTPUT },
             orderBy: { createdAt: 'desc' },
@@ -20,7 +25,7 @@ class MessageService {
         let content = '';
         let newInteractionId = null;
 
-        const response = aiService.generateResponse(prompt, prevInteractionId);
+        const response = aiService.generateResponse(prompt, systemInstruction.content, prevInteractionId);
 
         for await (const chunk of response) {
             newInteractionId = chunk.id || newInteractionId;
