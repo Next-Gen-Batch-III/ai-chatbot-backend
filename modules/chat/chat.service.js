@@ -37,12 +37,9 @@ class ChatService {
             const chats = await prisma.chat.findMany({
                 where: { userId: userId },
                 orderBy: { createdAt: 'desc' },
+                select: { id: true, title: true, lastMessageAt: true },
             });
-            return chats.map(chat => ({
-                chatId: chat.id,
-                title: chat.title,
-                lastMessageAt: chat.lastMessageAt,
-            }));
+            return chats;
         } catch (error) {
             console.error("Error fetching all chats:", error);
             throw error;
@@ -50,20 +47,30 @@ class ChatService {
     }
 
     async updateChat(chatId, userId, updateData) {
-        const chat = prisma.chat.update({
-            where: { id: chatId, userId: userId },
-            data: updateData,
-        });
+        try {
+            const chat = prisma.chat.update({
+                where: { id: chatId, userId: userId },
+                data: updateData,
+            });
 
-        return { chatId: chat.id, title: chat.title };
+            return { chatId: chat.id, title: chat.title };
+        } catch (error) {
+            console.error("Error updating chat:", error);
+            throw error;
+        }
     }
 
     async deleteChat(chatId, userId) {
-        const chat = await this.validateChat(chatId, userId);
-        await prisma.chat.delete({
-            where: { id: chatId },
-        });
-        return;
+        try {
+            const chat = await this.validateChat(chatId, userId);
+            await prisma.chat.delete({
+                where: { id: chatId },
+            });
+            return;
+        } catch (error) {
+            console.error("Error deleting chat:", error);
+            throw error;
+        }
     }
 }
 

@@ -10,6 +10,7 @@ import chatService from "../chat/chat.service.js";
 class MessageService {
 
     async *getAIResponse(prompt, userId, chatId) {
+        
         const chat = await chatService.validateChat(chatId, userId);
 
         const systemInstruction = await prisma.systemPrompt.findFirst({
@@ -58,6 +59,22 @@ class MessageService {
             chatId: chatId,
             chatTitle: chat.title,
         };
+    }
+
+    async getMessagesByChatId(chatId, userId) {
+        const chat = await chatService.validateChat(chatId, userId);
+
+        const messages = await prisma.message.findMany({
+            where: { chatId: chatId },
+            orderBy: { createdAt: 'asc' },
+            select: {
+                id: true,
+                type: true,
+                content: true,
+            }
+        });
+
+        return messages;
     }
 }
 
