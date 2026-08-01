@@ -48,7 +48,7 @@ class ChatService {
 
     async updateChat(chatId, userId, updateData) {
         try {
-            const chat = prisma.chat.update({
+            const chat = await prisma.chat.update({
                 where: { id: chatId, userId: userId },
                 data: updateData,
             });

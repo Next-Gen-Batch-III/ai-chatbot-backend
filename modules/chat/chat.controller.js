@@ -19,13 +19,17 @@ class ChatController {
         } catch (error) {
             console.error("Error in ChatController:", error);
             if (!res.headersSent) {
-                return res.status(error.statusCode || 500).json(
-                    { error: error.message || "An error occurred while processing your request." }
-                );
+                if (error instanceof AppError) {
+                    return res.status(error.statusCode).json({ error: error.message });
+                }
+                return res.status(500).json({ error: "An internal server error occurred." });
             }
-            res.write(`data: ${JSON.stringify({
-                error: error.message || "An error occurred while processing your request."
-            })}\n\n`);
+            if (error instanceof AppError) {
+                res.write(`data: ${JSON.stringify({ type: "error", message: error.message, stats: error.statusCode })}\n\n`);
+            } else {
+                res.write(`data: ${JSON.stringify({ type: "error", message: "An internal server error occurred.", error: 500 })}\n\n`);
+            }
+            res.end();
         }
     }
 
@@ -46,7 +50,10 @@ class ChatController {
             res.status(200).json(chat);
         } catch (error) {
             console.error("Error fetching chat by ID:", error);
-            res.status(error.statusCode || 500).json({ error: error.message || "An error occurred while fetching the chat." });
+            if(error instanceof AppError) {
+                return res.status(error.statusCode).json({ error: error.message });
+            }
+            res.status(500).json({ error: "An error occurred while fetching the chat." });
         }
     }
 
@@ -58,7 +65,10 @@ class ChatController {
             res.status(200).json(updatedChat);
         } catch (error) {
             console.error("Error updating chat:", error);
-            res.status(error.statusCode || 500).json({ error: error.message || "An error occurred while updating the chat." });
+            if(error instanceof AppError) {
+                return res.status(error.statusCode).json({ error: error.message });
+            }
+            res.status(500).json({ error: "An error occurred while updating the chat." });
         }
     }
 
@@ -69,7 +79,10 @@ class ChatController {
             res.status(204).send();
         } catch (error) {
             console.error("Error deleting chat:", error);
-            res.status(error.statusCode || 500).json({ error: error.message || "An error occurred while deleting the chat." });
+            if(error instanceof AppError) {
+                return res.status(error.statusCode).json({ error: error.message });
+            }
+            res.status(500).json({ error: "An error occurred while deleting the chat." });
         }
     }
 }

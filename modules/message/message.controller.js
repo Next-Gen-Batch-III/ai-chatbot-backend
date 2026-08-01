@@ -1,5 +1,5 @@
 import messageService from "./message.service.js";
-
+import { AppError } from "../../errors/index.js";
 class MessageController {
 
     async getAIResponse(req, res) {
@@ -20,14 +20,15 @@ class MessageController {
             res.end();
         } catch (error) {
             if(!res.headersSent) {
-                return res.status(error.statusCode || 500).json(
-                    { error: error.message || "An error occurred while processing your request." }
-                );
+                if(error instanceof AppError) {
+                    return res.status(error.statusCode).json({ error: error.message });
+                }
             }
-
-            res.write(`data: ${JSON.stringify({
-                error: error.message || "An error occurred while processing your request."
-            })}\n\n`);
+            if (error instanceof AppError) {
+                res.write(`data: ${JSON.stringify({ type: "error", message: error.message, status: error.statusCode })}\n\n`);
+            } else {
+                res.write(`data: ${JSON.stringify({ type: "error", message: "An internal server error occurred.", status: 500 })}\n\n`);
+            }
             res.end();
         }
     }
@@ -39,7 +40,10 @@ class MessageController {
             res.status(200).json(messages);
         } catch (error) {
             console.error("Error fetching all messages:", error);
-            res.status(error.statusCode || 500).json({ error: error.message || "An error occurred while fetching messages." });
+            if(error.statusCode === 500) {
+                return res.status(500).json({ error: "An internal server error occurred while fetching messages." });
+            }
+            res.status(error.statusCode).json({ error: error.message });
         }
     }
 }

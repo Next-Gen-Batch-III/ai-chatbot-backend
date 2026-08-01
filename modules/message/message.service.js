@@ -55,7 +55,7 @@ class MessageService {
         });
 
         yield {
-            status: "completed",
+            type: "end",
             chatId: chatId,
             chatTitle: chat.title,
         };
