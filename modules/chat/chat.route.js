@@ -26,7 +26,42 @@ const router = Router();
  *             $ref: '#/components/schemas/ChatRequest'
  *     responses:
  *       200:
- *         description: Stream of AI response.
+ *         description: Server-Sent Events stream of AI response chunks.
+ *         headers:
+ *           Content-Type:
+ *             description: SSE content type.
+ *             schema:
+ *               type: string
+ *               example: text/event-stream
+ *           Cache-Control:
+ *             schema:
+ *               type: string
+ *               example: no-cache
+ *           Connection:
+ *             schema:
+ *               type: string
+ *               example: keep-alive
+ *         content:
+ *           text/event-stream:
+ *             schema:
+ *               type: string
+ *               description: |
+ *                 SSE frames where each frame starts with "data:" followed by a JSON payload and then a blank line.
+ *             examples:
+ *               streamExample:
+ *                 value: |
+ *                   data: {"type":"thought","content":"thinking...","chatId":"064c3b77-d33a-4e9a-a2d7-2dfe99436722"}
+ *
+ *                   data: {"type":"text","content":"Hello!","chatId":"064c3b77-d33a-4e9a-a2d7-2dfe99436722"}
+ *
+ *                   data: {"type":"end","chatId":"064c3b77-d33a-4e9a-a2d7-2dfe99436722","chatTitle":"My chat"}
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *               
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.post("/", validateSchema(chatRequestSchema) , chatController.getAIResponse);
 
@@ -42,8 +77,26 @@ router.post("/", validateSchema(chatRequestSchema) , chatController.getAIRespons
  *     responses:
  *       200:
  *         description: A list of chat sessions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ChatSummary'
+ *             example:
+ *               - id: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *                 title: "My chat"
+ *                 lastMessageAt: "2026-08-01T08:00:00.000Z"
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  *       500:
  *         description: An error occurred while fetching chats.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "An error occurred while fetching chats."
  */
 router.get("/", chatController.getAllChats);
 
@@ -74,12 +127,29 @@ router.get("/", chatController.getAllChats);
  *     responses:
  *       200:
  *         description: The updated chat session.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ChatUpdateResponse'
+ *             example:
+ *               chatId: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *               title: "My Updated Chat Title"
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  *       403:
- *         description: User does not have permission to update this chat session.
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
- *         description: Chat session not found.
+ *         $ref: '#/components/responses/ChatNotFound'
  *       500:
  *         description: An error occurred while updating the chat session.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "An error occurred while updating the chat."
  */
 router.patch("/:chatId", validateSchema(updateChatSchema), chatController.updateChat);
 
@@ -104,12 +174,22 @@ router.patch("/:chatId", validateSchema(updateChatSchema), chatController.update
  *     responses:
  *       204:
  *         description: Chat session deleted successfully.
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  *       403:
- *         description: User does not have permission to delete this chat session.
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
- *         description: Chat session not found.
+ *         $ref: '#/components/responses/ChatNotFound'
  *       500:
  *         description: An error occurred while deleting the chat session.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "An error occurred while deleting the chat."
  */
 router.delete("/:chatId", validateSchema(deleteChatSchema), chatController.deleteChat);
 

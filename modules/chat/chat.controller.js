@@ -1,4 +1,5 @@
 import chatService from "./chat.service.js";
+import { AppError } from "../../errors/index.js";
 
 class ChatController {
     async getAIResponse(req, res) {
