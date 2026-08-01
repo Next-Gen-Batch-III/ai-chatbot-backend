@@ -1,7 +1,9 @@
 import { Router } from "express";
+
 import chatController from "./chat.controller.js";
-import { chatRequestSchema, getChatByIdSchema } from "./chat.schema.js";
+import { chatRequestSchema, updateChatSchema, deleteChatSchema } from "./chat.schema.js";
 import validateSchema from "../../middlewares/validateSchema.js";
+import messageRoutes from "../message/message.route.js";
 
 const router = Router();
 
@@ -11,7 +13,7 @@ const router = Router();
  * @swagger
  * /api/chat:
  *   post:
- *     summary: Get stream of AI response for a given prompt and create a new chat session if chatId is not provided.
+ *     summary: Get stream of AI response and create a new chat session.
  *     tags:
  *       - Chat
  *     security:
@@ -30,41 +32,6 @@ router.post("/", validateSchema(chatRequestSchema) , chatController.getAIRespons
 
 /**
  * @swagger
- * /api/chat/{chatId}:
- *   post:
- *     summary: Continue an existing chat session with a new prompt
- *     tags:
- *       - Chat
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: chatId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: The unique ID of the existing chat session
- *         example: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ChatRequest'
- *     responses:
- *       200:
- *         description: Stream of AI response.
- *       403:
- *         description: User does not have permission to access this chat session.
- *       404:
- *         description: Chat session not found.
- */
-router.post("/:chatId",validateSchema(chatRequestSchema), chatController.getAIResponse);
-
-
-/**
- * @swagger
  * /api/chat:
  *   get:
  *     summary: Retrieve all chat sessions for the authenticated user.
@@ -80,12 +47,11 @@ router.post("/:chatId",validateSchema(chatRequestSchema), chatController.getAIRe
  */
 router.get("/", chatController.getAllChats);
 
-
 /**
  * @swagger
  * /api/chat/{chatId}:
- *   get:
- *     summary: Retrieve a specific chat session by its ID.
+ *   patch:
+ *     summary: Update the title of an existing chat session.
  *     tags:
  *       - Chat
  *     security:
@@ -94,20 +60,60 @@ router.get("/", chatController.getAllChats);
  *       - in: path
  *         name: chatId
  *         required: true
+ *         description: The unique ID of the chat session to update.
  *         schema:
  *           type: string
  *           format: uuid
- *         description: The unique ID of the chat session to retrieve.
- *         example: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *           example: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateChatRequest'
  *     responses:
  *       200:
- *         description: The requested chat session.
+ *         description: The updated chat session.
+ *       403:
+ *         description: User does not have permission to update this chat session.
  *       404:
  *         description: Chat session not found.
  *       500:
- *         description: An error occurred while fetching the chat session.
+ *         description: An error occurred while updating the chat session.
  */
-router.get("/:chatId", validateSchema(getChatByIdSchema), chatController.getChatById);
+router.patch("/:chatId", validateSchema(updateChatSchema), chatController.updateChat);
+
+/**
+ * @swagger
+ * /api/chat/{chatId}:
+ *   delete:
+ *     summary: Delete an existing chat session.
+ *     tags:
+ *       - Chat
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         description: The unique ID of the chat session to delete.
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *           example: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *     responses:
+ *       204:
+ *         description: Chat session deleted successfully.
+ *       403:
+ *         description: User does not have permission to delete this chat session.
+ *       404:
+ *         description: Chat session not found.
+ *       500:
+ *         description: An error occurred while deleting the chat session.
+ */
+router.delete("/:chatId", validateSchema(deleteChatSchema), chatController.deleteChat);
+
+router.use("/:chatId/messages", messageRoutes);
 
 
 export default router;

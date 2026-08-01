@@ -3,86 +3,33 @@ import messageResponseMapper from "../message/messageResponse.mapper.js";
 import prisma from "../../configs/db.js";
 import { MessageType } from "@prisma/client";
 import util from "util";
+import messageService from "../message/message.service.js";
+import { NotFoundError, ForbiddenError } from "../../errors/index.js";
 
 class ChatService {
 
-    async getAIResponse(prompt, userId, chatId, res) {
-        let newChatId = chatId;
-        if(!chatId){
-            try {
-                const newChat = await prisma.chat.create({
-                    data: {
-                        userId: userId,
-                        title: prompt.substring(0, 20) + '...',
-                    },
-                })
-                newChatId = newChat.id;
-            } catch (error) {
-                console.error("Error creating new chat:", error);
-                throw error;
-            }
+    async validateChat(chatId, userId) {
+        const chat = await prisma.chat.findUnique({
+            where: { id: chatId },
+        });
+        if (!chat) {
+            throw new NotFoundError("Chat not found.");
         }
-
-        try {
-            const chat = await prisma.chat.findUnique({
-                where: { id: newChatId },
-            });
-            if (!chat) {
-                res.status(404).json({ error: "Chat not found." });
-            }
-            if(chat.userId !== userId){
-                res.status(403).json({ error: "You do not have permission to access this chat." });
-            }
-
-            const prevInteractionId = await prisma.message.findFirst({
-                where: { chatId: newChatId, type: MessageType.MODEL_OUTPUT },
-                orderBy: { createdAt: 'desc' },
-            }).then(message => message ? message.interactionId : null);
-
-            let content = '';
-            let newInteractionId = null;
-
-            const response = aiService.generateResponse(prompt, prevInteractionId);
-
-            for await (const chunk of response){
-                newInteractionId = chunk.id || newInteractionId;
-                res.write(`data: ${JSON.stringify({
-                    ...chunk,
-                    chatId: newChatId
-                })}\n\n`);
-
-                if (chunk.type === "text") {
-                    content += chunk.content;
-                }
-            }
-
-            const newMessage = await prisma.message.create({
-                data: {
-                    chatId: newChatId,
-                    type: MessageType.USER_INPUT,
-                    content: prompt,
-                },
-            });
-
-            const aiMessage = await prisma.message.create({
-                data: {
-                    chatId: newChatId,
-                    type: MessageType.MODEL_OUTPUT,
-                    content: content,
-                    interactionId: newInteractionId
-                },
-            });
-            res.write(`data: ${JSON.stringify({
-                status: "completed",
-                chatId: newChatId,
-                chatTitle: chat.title,
-            })}`)
-
-            res.end();
-        } catch (error) {
-            console.error("Error in ChatService:", util.inspect(error, { depth: null, showHidden: false, colors: true }));
-            throw error;
+        if (chat.userId !== userId) {
+            throw new ForbiddenError("You do not have permission to access this chat.");
         }
+        return chat;
+    }
+    
+    async *createChat(userId, prompt) {
+        const chat = await prisma.chat.create({
+            data: {
+                userId: userId,
+            },
+        });
+
+        let newInteractionId = null;
+        yield* messageService.getAIResponse(prompt, userId, chat.id);
     }
 
     async getAllChats(userId) {
@@ -91,31 +38,33 @@ class ChatService {
                 where: { userId: userId },
                 orderBy: { createdAt: 'desc' },
             });
-            return chats;
+            return chats.map(chat => ({
+                chatId: chat.id,
+                title: chat.title,
+                lastMessageAt: chat.lastMessageAt,
+            }));
         } catch (error) {
             console.error("Error fetching all chats:", error);
             throw error;
         }
     }
 
-    async getChatById(chatId, userId) {
-        try {
-            const chat = await prisma.chat.findUnique({
-                where: { id: chatId },
-            });
-            if (!chat) {
-                return null;
-            }
-            if(chat.userId !== userId){
-                throw new Error("You do not have permission to access this chat.");
-            }
-            return chat;
-        } catch (error) {
-            console.error("Error fetching chat by ID:", error);
-            throw error;
-        }
+    async updateChat(chatId, userId, updateData) {
+        const chat = prisma.chat.update({
+            where: { id: chatId, userId: userId },
+            data: updateData,
+        });
+
+        return { chatId: chat.id, title: chat.title };
     }
 
+    async deleteChat(chatId, userId) {
+        const chat = await this.validateChat(chatId, userId);
+        await prisma.chat.delete({
+            where: { id: chatId },
+        });
+        return;
+    }
 }
 
 export default new ChatService();
