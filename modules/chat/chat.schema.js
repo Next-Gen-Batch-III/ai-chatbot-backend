@@ -25,6 +25,12 @@ export const chatRequestSchema = z.object({
     }),
 });
 
+export const getChatSchema = z.object({
+    query: z.object({
+        limit: z.coerce.number().int().positive().max(100).default(20),
+        cursor: z.string().datetime().optional(),
+    }),
+})
 /**
  * @swagger
  * components:

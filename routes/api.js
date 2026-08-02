@@ -2,6 +2,7 @@ import express from "express";
 import checkRole from "../middlewares/checkRole.js";
 import authenticate from "../middlewares/authenticate.js";
 import chatRoutes from "../modules/chat/chat.route.js";
+import systemPromptRoutes from "../modules/system-prompt/systemPrompt.route.js";
 
 const router = express.Router();
 
@@ -19,7 +20,9 @@ router.get("/admin/test", checkRole(["admin"]), (req, res) => {
 });
 
 router.use(authenticate);
-router.use("/chat", chatRoutes);
+router.use("/chats", chatRoutes);
+
+router.use("/system-prompt", checkRole(["admin"]), systemPromptRoutes);
 
 
 export default router;

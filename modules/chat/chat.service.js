@@ -1,3 +1,5 @@
+
+
 import aiService from "../ai/ai.service.js";
 import messageResponseMapper from "../message/messageResponse.mapper.js";
 import prisma from "../../configs/db.js";
@@ -20,6 +22,21 @@ class ChatService {
         }
         return chat;
     }
+
+    async togglePinChat(chatId, userId) {
+        try {
+            const chat = await this.validateChat(chatId, userId);
+            const updatedChat = await prisma.chat.update({
+                where: { id: chatId },
+                data: { isPinned: !chat.isPinned },
+                select: { id: true, isPinned: true, title: true, lastMessageAt: true },
+            });
+            return updatedChat;
+        } catch (error) {
+            console.error("Error toggling pin status:", error);
+            throw error;
+        }
+    }
     
     async *createChat(prompt, userId) {
         const chat = await prisma.chat.create({
@@ -32,14 +49,36 @@ class ChatService {
         yield* messageService.getAIResponse(prompt, userId, chat.id);
     }
 
-    async getAllChats(userId) {
+    async getAllChats(userId, { limit = 20, cursor } = {}) {
         try {
-            const chats = await prisma.chat.findMany({
-                where: { userId: userId },
-                orderBy: { createdAt: 'desc' },
-                select: { id: true, title: true, lastMessageAt: true },
-            });
-            return chats;
+            const [pinnedChats, chats] = await Promise.all([
+                !cursor ? prisma.chat.findMany({
+                      where: { userId, isPinned: true },
+                      orderBy: { lastMessageAt: 'desc' },
+                      select: { id: true, title: true, isPinned: true, lastMessageAt: true },
+                }) : [],
+                prisma.chat.findMany({
+                    where: { 
+                        userId, 
+                        isPinned: false,
+                        ...(cursor ? { lastMessageAt: { lt: new Date(cursor) } } : {})
+                     },
+                    orderBy: { lastMessageAt: 'desc' },
+                    select: { id: true, title: true, isPinned: true, lastMessageAt: true },
+                    take: limit + 1,
+                }),
+            ]);
+
+            let nextCursor = null;
+            if (chats.length > limit) {
+                chats.pop();
+                nextCursor = chats[chats.length - 1].lastMessageAt;
+            }
+
+            return {
+                chats: [...pinnedChats, ...chats],
+                nextCursor,
+            };
         } catch (error) {
             console.error("Error fetching all chats:", error);
             throw error;
@@ -48,12 +87,14 @@ class ChatService {
 
     async updateChat(chatId, userId, updateData) {
         try {
-            const chat = await prisma.chat.update({
-                where: { id: chatId, userId: userId },
+            const chat = await this.validateChat(chatId, userId);
+            const updatedChat = await prisma.chat.update({
+                where: { id: chatId },
                 data: updateData,
+                select: { id: true, title: true, isPinned: true, lastMessageAt: true },
             });
 
-            return { chatId: chat.id, title: chat.title };
+            return updatedChat;
         } catch (error) {
             console.error("Error updating chat:", error);
             throw error;

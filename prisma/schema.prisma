@@ -22,16 +22,17 @@ model User {
 }
 
 model Chat {
-  id            String    @id @default(uuid()) @db.Uuid
-  userId        String    @map("user_id")
-  title         String    @default("New Chat")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  lastMessageAt DateTime  @default(now()) @map("last_message_at")
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id")
+  title         String   @default("New Chat")
+  isPinned      Boolean  @default(false) @map("is_pinned")
+  createdAt     DateTime @default(now()) @map("created_at")
+  lastMessageAt DateTime @default(now()) @map("last_message_at")
 
-  user          User      @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
-  messages      Message[]
+  user     User      @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
+  messages Message[]
 
-  @@index([userId, lastMessageAt(sort: Desc)])
+  @@index([userId, isPinned, lastMessageAt(sort: Desc)])
   @@map("chats")
 }
 
