@@ -20,6 +20,21 @@ class ChatService {
         }
         return chat;
     }
+
+    async togglePinChat(chatId, userId) {
+        try {
+            const chat = await this.validateChat(chatId, userId);
+            const updatedChat = await prisma.chat.update({
+                where: { id: chatId },
+                data: { isPinned: !chat.isPinned },
+                select: { id: true, isPinned: true, title: true, lastMessageAt: true },
+            });
+            return updatedChat;
+        } catch (error) {
+            console.error("Error toggling pin status:", error);
+            throw error;
+        }
+    }
     
     async *createChat(prompt, userId) {
         const chat = await prisma.chat.create({
@@ -34,12 +49,22 @@ class ChatService {
 
     async getAllChats(userId) {
         try {
-            const chats = await prisma.chat.findMany({
-                where: { userId: userId },
-                orderBy: { createdAt: 'desc' },
-                select: { id: true, title: true, lastMessageAt: true },
-            });
-            return chats;
+            const [pinnedChats, chats] = await Promise.all([
+                prisma.chat.findMany({
+                    where: { userId, isPinned: true },
+                    orderBy: { lastMessageAt: 'desc' },
+                    select: { id: true, title: true, isPinned: true, lastMessageAt: true },
+                }),
+                prisma.chat.findMany({
+                    where: { userId, isPinned: false },
+                    orderBy: { lastMessageAt: 'desc' },
+                    select: { id: true, title: true, isPinned: true, lastMessageAt: true },
+                }),
+            ]);
+
+            return {
+                chats: [...pinnedChats, ...chats],
+            };
         } catch (error) {
             console.error("Error fetching all chats:", error);
             throw error;

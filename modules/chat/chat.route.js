@@ -11,7 +11,7 @@ const router = Router();
 
 /**
  * @swagger
- * /api/chat:
+ * /api/chats:
  *   post:
  *     summary: Get stream of AI response and create a new chat session.
  *     tags:
@@ -67,7 +67,7 @@ router.post("/", validateSchema(chatRequestSchema) , chatController.getAIRespons
 
 /**
  * @swagger
- * /api/chat:
+ * /api/chats:
  *   get:
  *     summary: Retrieve all chat sessions for the authenticated user.
  *     tags:
@@ -84,9 +84,15 @@ router.post("/", validateSchema(chatRequestSchema) , chatController.getAIRespons
  *               items:
  *                 $ref: '#/components/schemas/ChatSummary'
  *             example:
- *               - id: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
- *                 title: "My chat"
- *                 lastMessageAt: "2026-08-01T08:00:00.000Z"
+ *               chat: 
+ *                 -  "id": "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *                    "title": "My First Chat"
+ *                    "lastMessageAt": "2023-10-01T12:34:56Z"
+ *                    "isPinned": true
+ *                 -  "id": "064c3b77-d33a-4e9a-a2d7-2dfe99436723"
+ *                    "title": "My Second Chat"
+ *                    "lastMessageAt": "2023-10-02T12:34:56Z"
+ *                    "isPinned": false
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       500:
@@ -102,7 +108,7 @@ router.get("/", chatController.getAllChats);
 
 /**
  * @swagger
- * /api/chat/{chatId}:
+ * /api/chats/{chatId}:
  *   patch:
  *     summary: Update the title of an existing chat session.
  *     tags:
@@ -153,9 +159,45 @@ router.get("/", chatController.getAllChats);
  */
 router.patch("/:chatId", validateSchema(updateChatSchema), chatController.updateChat);
 
+/** 
+ * @swagger
+ * /api/chats/{chatId}/toggle-pin:
+ *   patch:
+ *     summary: Toggle the pinned status of a chat session.
+ *     tags:
+ *       - Chat
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *     - in: path
+ *       name: chatId
+ *       required: true
+ *       description: The unique ID of the chat session to toggle pin status.
+ *       schema:
+ *         type: string
+ *         format: uuid
+ *         example: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *     responses:
+ *       200:
+ *         description: The updated chat session with the new pinned status.
+ *         content:
+ *           application/json: 
+ *             schema:
+ *               $ref: '#/components/schemas/ChatUpdateResponse'
+ *             example:
+ *               chatId: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *               title: "My Updated Chat Title"
+ *               isPinned: true
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+*/
+router.patch("/:chatId/toggle-pin", chatController.togglePinChat);
+
 /**
  * @swagger
- * /api/chat/{chatId}:
+ * /api/chats/{chatId}:
  *   delete:
  *     summary: Delete an existing chat session.
  *     tags:

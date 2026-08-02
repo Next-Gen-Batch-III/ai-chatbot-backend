@@ -3,13 +3,14 @@ import { AppError } from "../../errors/index.js";
 class MessageController {
 
     async getAIResponse(req, res) {
-        try {
-            const { chatId } = req.params;
-            const { prompt } = req.body;
+        const { chatId } = req.params;
+        const { prompt } = req.body;
+        
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
 
-            res.setHeader('Content-Type', 'text/event-stream');
-            res.setHeader('Cache-Control', 'no-cache');
-            res.setHeader('Connection', 'keep-alive');
+        try {
 
             const response = messageService.getAIResponse(prompt, req.userId, chatId);
 
@@ -19,16 +20,10 @@ class MessageController {
 
             res.end();
         } catch (error) {
-            if(!res.headersSent) {
-                if(error instanceof AppError) {
-                    return res.status(error.statusCode).json({ error: error.message });
-                }
-            }
-            if (error instanceof AppError) {
-                res.write(`data: ${JSON.stringify({ type: "error", message: error.message, status: error.statusCode })}\n\n`);
-            } else {
-                res.write(`data: ${JSON.stringify({ type: "error", message: "An internal server error occurred.", status: 500 })}\n\n`);
-            }
+            const statusCode = error instanceof AppError ? error.statusCode : 500;
+            const message = error instanceof AppError ? error.message : "An internal server error occurred.";
+        
+            res.write(`data: ${JSON.stringify({ type: "error", message, status: statusCode })}\n\n`);
             res.end();
         }
     }

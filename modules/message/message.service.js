@@ -17,6 +17,8 @@ class MessageService {
             select: { content: true },
         });
 
+        const finalSystemInstruction = systemInstruction?.content ?? "";
+
 
         const prevInteractionId = await prisma.message.findFirst({
             where: { chatId: chatId, type: MessageType.MODEL_OUTPUT },
@@ -26,7 +28,7 @@ class MessageService {
         let content = '';
         let newInteractionId = null;
 
-        const response = aiService.generateResponse(prompt, systemInstruction.content, prevInteractionId);
+        const response = aiService.generateResponse(prompt, finalSystemInstruction, prevInteractionId);
 
         for await (const chunk of response) {
             newInteractionId = chunk.id || newInteractionId;
