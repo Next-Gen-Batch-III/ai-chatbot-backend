@@ -29,26 +29,13 @@ class ChatController {
     }
 
     async getAllChats(req, res) {
+        const { limit, cursor } = req.query;
         try {
-            const chats = await chatService.getAllChats(req.userId);
+            const chats = await chatService.getAllChats(req.userId, {limit, cursor});
             res.status(200).json({ data: chats });
         } catch (error) {
             console.error("Error fetching all chats:", error);
             res.status(500).json({ error: "An error occurred while fetching chats." });
-        }
-    }
-
-    async getChatById(req, res) {
-        const { chatId } = req.params;
-        try {
-            const chat = await chatService.getChatById(chatId, req.userId);
-            res.status(200).json({ data: chat });
-        } catch (error) {
-            console.error("Error fetching chat by ID:", error);
-            if(error instanceof AppError) {
-                return res.status(error.statusCode).json({ error: error.message });
-            }
-            res.status(500).json({ error: "An error occurred while fetching the chat." });
         }
     }
 

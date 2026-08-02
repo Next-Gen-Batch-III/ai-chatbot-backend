@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import chatController from "./chat.controller.js";
-import { chatRequestSchema, updateChatSchema, deleteChatSchema } from "./chat.schema.js";
+import { chatRequestSchema, updateChatSchema, deleteChatSchema, getChatSchema } from "./chat.schema.js";
 import validateSchema from "../../middlewares/validateSchema.js";
 import messageRoutes from "../message/message.route.js";
 
@@ -74,25 +74,49 @@ router.post("/", validateSchema(chatRequestSchema) , chatController.getAIRespons
  *       - Chat
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           minimum: 1
+ *           maximum: 100
+ *         description: Number of chats to fetch per page.
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: ISO timestamp cursor from previous response for pagination (`nextCursor`).
  *     responses:
  *       200:
- *         description: A list of chat sessions.
+ *         description: A paginated list of chat sessions.
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/ChatSummary'
+ *               type: object
+ *               properties:
+ *                 chats:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ChatSummary'
+ *                 nextCursor:
+ *                   type: string
+ *                   format: date-time
+ *                   nullable: true
+ *                   description: Cursor for the next page. Returns `null` when there are no more chats to fetch (end of list).
  *             example:
- *               chat: 
- *                 -  "id": "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
- *                    "title": "My First Chat"
- *                    "lastMessageAt": "2023-10-01T12:34:56Z"
- *                    "isPinned": true
- *                 -  "id": "064c3b77-d33a-4e9a-a2d7-2dfe99436723"
- *                    "title": "My Second Chat"
- *                    "lastMessageAt": "2023-10-02T12:34:56Z"
- *                    "isPinned": false
+ *               chats:
+ *                 - id: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
+ *                   title: "My First Chat"
+ *                   lastMessageAt: "2026-08-01T12:34:56Z"
+ *                   isPinned: true
+ *                 - id: "064c3b77-d33a-4e9a-a2d7-2dfe99436723"
+ *                   title: "My Second Chat"
+ *                   lastMessageAt: "2026-07-30T10:15:00Z"
+ *                   isPinned: false
+ *               nextCursor: "2026-07-30T10:15:00Z"
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       500:
@@ -104,7 +128,7 @@ router.post("/", validateSchema(chatRequestSchema) , chatController.getAIRespons
  *             example:
  *               error: "An error occurred while fetching chats."
  */
-router.get("/", chatController.getAllChats);
+router.get("/", validateSchema(getChatSchema), chatController.getAllChats);
 
 /**
  * @swagger
@@ -140,6 +164,8 @@ router.get("/", chatController.getAllChats);
  *             example:
  *               chatId: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
  *               title: "My Updated Chat Title"
+ *               isPinned: true
+ *               lastMessageAt: "2023-10-02T12:34:56Z"
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  *       401:
@@ -188,6 +214,7 @@ router.patch("/:chatId", validateSchema(updateChatSchema), chatController.update
  *               chatId: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
  *               title: "My Updated Chat Title"
  *               isPinned: true
+ *               lastMessageAt: "2023-10-02T12:34:56Z"
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  *       401:

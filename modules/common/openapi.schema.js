@@ -61,6 +61,8 @@
  *           format: uuid
  *         title:
  *           type: string
+ *         isPinned:
+ *           type: boolean
  *         lastMessageAt:
  *           type: string
  *           format: date-time
@@ -73,9 +75,16 @@
  *           format: uuid
  *         title:
  *           type: string
+ *         isPinned:
+ *           type: boolean
+ *         lastMessageAt:
+ *           type: string
+ *           format: date-time
  *       example:
  *         chatId: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
  *         title: "My Updated Chat Title"
+ *         isPinned: true
+ *         lastMessageAt: "2023-10-02T12:34:56Z"
  *
  *     MessageItem:
  *       type: object
