@@ -24,6 +24,6 @@ export const uploadFileSchema = z.object({
 
 export const deleteFileSchema = z.object({
     params: z.object({
-        fileId: z.string().uuid("Invalid file ID format."),
+    fileId: z.coerce.number().int().positive("Invalid file ID format."),
     }),
 });

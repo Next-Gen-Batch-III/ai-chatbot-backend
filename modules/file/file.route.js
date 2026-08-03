@@ -217,9 +217,8 @@ router.get("/", fileController.getFile);
  *         required: true
  *         description: The unique ID of the file to delete.
  *         schema:
- *           type: string
- *           format: uuid
- *           example: "4a6b1f8e-7d1c-4d65-bb02-0f4df9cc2f67"
+ *           type: integer
+ *           example: 1
  *     responses:
  *       204:
  *         description: File deleted successfully.
