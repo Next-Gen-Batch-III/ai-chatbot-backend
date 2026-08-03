@@ -1,4 +1,4 @@
-import pdfParse from "pdf-parse";
+import pdfParse from "pdf-parse-fork";
 import mammoth from "mammoth";
 import supabase from "../../configs/storage.js";
 import { AppError, NotFoundError } from "../../errors/index.js";
@@ -103,6 +103,32 @@ class FileService {
         }
     }
 
+    async getFileById(fileId) {
+        try {
+            const file = await prisma.file.findUnique({
+                where: { id: fileId },
+                select: {
+                    id: true,
+                    title: true,
+                    status: true,
+                }
+            });
+
+            if (!file) {
+                throw new NotFoundError(`File with ID ${fileId} not found.`);
+            }
+
+            return file;
+        } catch (error) {
+            console.error("Error in FileService.getFileById:", error);
+            if (error instanceof AppError) {
+                throw error;
+            }
+            throw new AppError("An unexpected error occurred while fetching the file.", 500);
+        }
+    }
+                    
+
     async getFileContent(fileId) {
         try {
             const file = await prisma.file.findUnique({
@@ -125,11 +151,7 @@ class FileService {
 
             const arrayBuffer = await data.arrayBuffer();
             const textContent = await this.extractTextFromFile(Buffer.from(arrayBuffer), file.fileType);
-            return {
-                id: file.id,
-                title: file.title,
-                content: textContent,
-            }
+            return textContent;
 
         } catch (error) {
             console.error("Error in FileService.getFileContent:", error);
@@ -167,6 +189,33 @@ class FileService {
                 throw error;
             }
             throw new AppError("An unexpected error occurred while updating the file status.", 500);
+        }
+    }
+
+    async updateFailReason(fileId, failReason) {
+        try {
+            const file = await prisma.file.findUnique({
+                where: { id: fileId },
+            });
+            if (!file) {
+                throw new NotFoundError(`File not found.`);
+            }
+            const updatedFile = await prisma.file.update({
+                where: { id: fileId },
+                data: { failReason },
+                select: {
+                    id: true,
+                    title: true,
+                    failReason: true,
+                }
+            });
+            return updatedFile;
+        } catch (error) {
+            console.error("Error in FileService.updateFailReason:", error);
+            if (error instanceof AppError) {
+                throw error;
+            }
+            throw new AppError("An unexpected error occurred while updating the file fail reason.", 500);
         }
     }
 
