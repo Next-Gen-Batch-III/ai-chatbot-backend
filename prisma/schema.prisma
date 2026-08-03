@@ -13,6 +13,13 @@ enum MessageType {
   MODEL_OUTPUT
 }
 
+enum FileStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  EMBEDED
+}
+
 model User {
   clerkId   String   @id @map("clerk_id")
   createdAt DateTime @default(now()) @map("created_at")
@@ -57,4 +64,17 @@ model SystemPrompt {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("system_prompts")
+}
+
+model File {
+  id          Int            @id @default(autoincrement())
+  title       String
+  fileUrl     String         @map("file_url")
+  fileType    String         @map("file_type")
+  fileSize    Int            @map("file_size")
+  status      FileStatus     @default(PENDING)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  @@map("documents")
 }

@@ -1,6 +1,6 @@
 import AppError from "./appError.js";
 
-class UnauthorisedError extends Error {
+class UnauthorisedError extends AppError {
     constructor(message = "Unauthorized") {
         super(message, 401);
     }

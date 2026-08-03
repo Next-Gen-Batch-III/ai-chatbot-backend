@@ -8,6 +8,7 @@
 * Google Gemini API (Model: Gemini-3.5-flash-lite)
 * Zod (Validate Request)
 * Swagger (API Documentation)
+* Supabase (File Storage)
 
 ---
 
