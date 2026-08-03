@@ -5,8 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node test/embedding.test.js",
+    "start": "node index.js",
     "dev": "nodemon index.js",
+    "postinstall": "prisma generate",
     "studio": "prisma studio"
   },
   "repository": {
@@ -36,5 +38,8 @@
   "devDependencies": {
     "nodemon": "^3.1.14",
     "prisma": "^7.9.1"
+  },
+  "directories": {
+    "test": "test"
   }
 }
