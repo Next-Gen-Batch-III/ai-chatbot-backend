@@ -7,7 +7,7 @@ const ACCEPTED_MIME_TYPES = [
   "text/plain",
 ];
 
-export const uploadDocumentSchema = z.object({
+export const uploadFileSchema = z.object({
   file: z
     .custom((file) => file !== undefined && file !== null, {
       message: "Please attach a file using the form field 'file'.",
@@ -20,4 +20,10 @@ export const uploadDocumentSchema = z.object({
       (file) => ACCEPTED_MIME_TYPES.includes(file?.mimetype),
       "Only .pdf, .docx, and .txt files are allowed."
     ),
+});
+
+export const deleteFileSchema = z.object({
+    params: z.object({
+        fileId: z.string().uuid("Invalid file ID format."),
+    }),
 });

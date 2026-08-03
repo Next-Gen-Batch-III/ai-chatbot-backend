@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import validateSchema from "../../middlewares/validateSchema.js";
 import checkRole from "../../middlewares/checkRole.js";
-import { uploadDocumentSchema } from "./file.schema.js";
+import { uploadFileSchema, deleteFileSchema } from "./file.schema.js";
 import fileController from "./file.controller.js";
 
 const router = Router();
@@ -119,7 +119,7 @@ const upload = multer({ storage: multer.memoryStorage() });
  *             example:
  *               error: "An error occurred while uploading the file."
  */
-router.post("/", upload.single("file"), validateSchema(uploadDocumentSchema), fileController.uploadFile);
+router.post("/", upload.single("file"), validateSchema(uploadFileSchema), fileController.uploadFile);
 
 /**
  * @swagger
@@ -200,5 +200,97 @@ router.post("/", upload.single("file"), validateSchema(uploadDocumentSchema), fi
  *               error: "An error occurred while fetching files."
  */
 router.get("/", fileController.getFile);
+
+
+/**
+ * @swagger
+ * /api/files/{fileId}:
+ *   delete:
+ *     summary: Delete an uploaded file.
+ *     tags:
+ *       - Files
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: fileId
+ *         required: true
+ *         description: The unique ID of the file to delete.
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *           example: "4a6b1f8e-7d1c-4d65-bb02-0f4df9cc2f67"
+ *     responses:
+ *       204:
+ *         description: File deleted successfully.
+ *       400:
+ *         description: Validation error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                       message:
+ *                         type: string
+ *             example:
+ *               message: "Validation error"
+ *               errors:
+ *                 - field: "params.fileId"
+ *                   message: "Invalid file ID format."
+ *       401:
+ *         description: Unauthorized, missing or invalid JWT token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             example:
+ *               message: "Unauthorized"
+ *       403:
+ *         description: Forbidden, user does not have the required admin role.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             example:
+ *               message: "Forbidden"
+ *       404:
+ *         description: File not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *             example:
+ *               error: "File not found."
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *             example:
+ *               error: "An error occurred while deleting the file."
+ */
+router.delete("/:fileId", validateSchema(deleteFileSchema), fileController.deleteFile);
 
 export default router;

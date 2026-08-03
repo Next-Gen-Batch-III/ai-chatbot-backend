@@ -100,7 +100,35 @@ class FileService {
             return updatedFile;
         } catch (error) {
             console.error("Error in FileService.updateFileStatus:", error);
+            if (error instanceof AppError) {
+                throw error;
+            }
             throw new AppError("An unexpected error occurred while updating the file status.", 500);
+        }
+    }
+
+    async deleteFile(fileId) {
+        try {
+            const file = await prisma.file.findUnique({
+                where: { id: fileId },
+            });
+            if (!file) {
+                throw new NotFoundError(`File not found.`);
+            }
+            const storagePath = file.fileUrl.split("/").pop();
+            const { error } = await supabase.storage
+                .from("documents")
+                .remove([storagePath]);
+            await prisma.file.delete({
+                where: { id: fileId },
+            });
+            return;
+        } catch (error) {
+            console.error("Error in FileService.deleteFile:", error);
+            if (error instanceof AppError) {
+                throw error;
+            }
+            throw new AppError("An unexpected error occurred while deleting the file.", 500);
         }
     }
 }
