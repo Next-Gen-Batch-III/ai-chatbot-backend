@@ -1,4 +1,5 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { PrismaClient, Prisma } from '@prisma/client'; // 👈 Add 'Prisma' here
 import { AppError, NotFoundError } from "../../errors/index.js";
 import embed from "../../configs/embed.js";
 import fileService from "../file/file.service.js";
@@ -103,6 +104,31 @@ class RAGService {
         throw error;
       }
       throw new AppError("An unexpected error occurred while creating embedding.", 500);
+    }
+  }
+
+  async getContext(prompt) {
+    try {
+      const embedding = await this.generateEmbedding({ text: prompt, inputType: "query" });
+
+      const vectorString = `[${embedding.join(",")}]`;
+
+      const results = await prisma.$queryRaw`
+          SELECT  
+            content, 
+            1 - (embedding <=> ${Prisma.sql`${vectorString}::vector`}) AS similarity
+          FROM "file_chunks"
+          WHERE (1 - (embedding <=> ${Prisma.sql`${vectorString}::vector`})) >= 0.65
+          ORDER BY similarity DESC
+          LIMIT 2;
+        `;
+      return results.map(result => result.content);
+    } catch (error) {
+      console.error("Error in RAGService.getContext:", error);
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError("An unexpected error occurred while retrieving context.", 500);
     }
   }
 }

@@ -5,6 +5,7 @@ import { MessageType } from "@prisma/client";
 import util from "util";
 import { NotFoundError, ForbiddenError, AppError } from "../../errors/index.js";
 import chatService from "../chat/chat.service.js";
+import RAGService from "../rag/rag.service.js";
 
 
 class MessageService {
@@ -17,7 +18,22 @@ class MessageService {
                 select: { content: true },
             });
 
-            const finalSystemInstruction = systemInstruction?.content ?? "";
+            const contextChunks = await RAGService.getContext(prompt);
+
+            const context = contextChunks.length > 0 ? contextChunks.join("\n\n") : "No relevant context found.";
+
+            const finalSystemInstruction = `Role & Strict Instructions:
+                                            - You are a helpful, direct AI assistant.
+                                            - Use the Reference Context below to answer the user's question accurately.
+                                            - CRITICAL: NEVER mention "based on the provided context", "according to the text", "the context provided", or "the documents". Speak directly and naturally as if you already know this information inherently.
+                                            - If the required answer is not present in the Reference Context, answer using your general knowledge, or state simply that you do not know.
+
+                                            Admin Instructions:
+                                            ${systemInstruction?.content || ""}
+
+                                            Reference Context:
+                                            ${context}
+                                            `.trim();
 
 
             const prevInteractionId = await prisma.message.findFirst({
@@ -27,6 +43,11 @@ class MessageService {
 
             let content = '';
             let newInteractionId = null;
+            yield {
+                type: "start",
+                chatId: chatId,
+                chatTitle: chat.title,
+            }
 
             const response = aiService.generateResponse(prompt, finalSystemInstruction, prevInteractionId);
 
@@ -38,7 +59,8 @@ class MessageService {
                 }
 
                 yield {
-                    ...chunk,
+                    type: chunk.type,
+                    content: chunk.content,
                     chatId: chatId,
                 };
             }
