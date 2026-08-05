@@ -4,27 +4,16 @@ import authenticate from "../middlewares/authenticate.js";
 import chatRoutes from "../modules/chat/chat.route.js";
 import systemPromptRoutes from "../modules/system-prompt/systemPrompt.route.js";
 import fileRoutes from "../modules/file/file.route.js";
+import { apiRateLimiter } from "../middlewares/rateLimit.js";
 
 const router = express.Router();
 
 
-router.get("/public/test", (req, res) => {
-    res.json({ message: "This is a public endpoint." });
-});
-
-router.get("/private/test", authenticate, (req, res) => {
-    res.json({ message: "This is a private endpoint." });
-});
-
-router.get("/admin/test", checkRole(["admin"]), (req, res) => {
-    res.json({ message: "This is a private endpoint for admin users." });
-});
-
 router.use(authenticate);
-router.use("/chats", chatRoutes);
+router.use("/chats", apiRateLimiter, chatRoutes);
 
-router.use("/system-prompt", checkRole(["admin"]), systemPromptRoutes);
-router.use("/files", checkRole(["admin"]), fileRoutes);
+router.use("/system-prompt", checkRole(["admin"]), apiRateLimiter, systemPromptRoutes);
+router.use("/files", checkRole(["admin"]), apiRateLimiter, fileRoutes);
 
 
 export default router;

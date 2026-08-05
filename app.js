@@ -8,6 +8,7 @@ import setupSwagger from "./swagger.js";
 
 const app = express();
 
+app.set("trust proxy", 1);
 setupSwagger(app);
 app.use(cors({ origin: process.env.CORS_ORIGIN }));
 app.use(express.json());
