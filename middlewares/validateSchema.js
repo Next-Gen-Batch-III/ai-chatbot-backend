@@ -14,13 +14,14 @@ const validateSchema = (schema) => {
                 req.body = parsed.body;
             }
             if(parsed.query) {
-                req.query = Object.assign(req.query, parsed.query);
+                Object.assign(req.query, parsed.query);
             }
 
             if(parsed.params) {
-                req.params = Object.assign(req.params, parsed.params);
+                Object.assign(req.params, parsed.params);
             }
             next();
+            
         } catch (error) {
             if (error instanceof ZodError) {
                 return res.status(400).json({

@@ -4,6 +4,7 @@ import validateSchema from "../../middlewares/validateSchema.js";
 import checkRole from "../../middlewares/checkRole.js";
 import { uploadFileSchema, deleteFileSchema } from "./file.schema.js";
 import fileController from "./file.controller.js";
+import RAGRoute from "../rag/rag.route.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -291,5 +292,7 @@ router.get("/", fileController.getFile);
  *               error: "An error occurred while deleting the file."
  */
 router.delete("/:fileId", validateSchema(deleteFileSchema), fileController.deleteFile);
+
+router.use("/:fileId/embedding", RAGRoute);
 
 export default router;

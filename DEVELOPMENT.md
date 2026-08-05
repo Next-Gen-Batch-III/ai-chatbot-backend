@@ -5,7 +5,8 @@
 * PostgreSQL with pgvector
 * Docker / Docker Compose
 * Clerk (Authentication and Authorization)
-* Google Gemini API (Model: Gemini-3.5-flash-lite)
+* Google Gemini API (Model: Gemini-3.5-flash-lite)(LLM)
+* Google Gemini API (Model: Gemini-Embedding-2)
 * Zod (Validate Request)
 * Swagger (API Documentation)
 * Supabase (File Storage)

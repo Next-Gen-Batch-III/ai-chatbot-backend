@@ -3,7 +3,7 @@ import messageController from "./message.controller.js";
 import { messageRequestSchema } from "./message.schema.js";
 import validateSchema from "../../middlewares/validateSchema.js";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 
 /**
@@ -56,6 +56,8 @@ const router = Router();
  *             examples:
  *               streamExample:
  *                 value: |
+ *                   data: {"type":"start","chatId":"064c3b77-d33a-4e9a-a2d7-2dfe99436722","chatTitle":"My chat"} 
+ * 
  *                   data: {"type":"thought","content":"thinking...","chatId":"064c3b77-d33a-4e9a-a2d7-2dfe99436722"}
  *
  *                   data: {"type":"text","content":"Hello!","chatId":"064c3b77-d33a-4e9a-a2d7-2dfe99436722"}
