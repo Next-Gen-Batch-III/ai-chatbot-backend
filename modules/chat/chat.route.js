@@ -4,6 +4,7 @@ import chatController from "./chat.controller.js";
 import { chatRequestSchema, updateChatSchema, deleteChatSchema, getChatSchema } from "./chat.schema.js";
 import validateSchema from "../../middlewares/validateSchema.js";
 import messageRoutes from "../message/message.route.js";
+import { aiRateLimiter } from "../../middlewares/rateLimit.js";
 
 const router = Router();
 
@@ -65,7 +66,7 @@ const router = Router();
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.post("/", validateSchema(chatRequestSchema) , chatController.getAIResponse);
+router.post("/",  validateSchema(chatRequestSchema), aiRateLimiter, chatController.getAIResponse);
 
 /**
  * @swagger

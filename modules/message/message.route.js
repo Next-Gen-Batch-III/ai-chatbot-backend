@@ -2,6 +2,7 @@ import { Router } from "express";
 import messageController from "./message.controller.js";
 import { messageRequestSchema } from "./message.schema.js";
 import validateSchema from "../../middlewares/validateSchema.js";
+import { aiRateLimiter } from "../../middlewares/rateLimit.js";
 
 const router = Router({ mergeParams: true });
 
@@ -82,7 +83,7 @@ const router = Router({ mergeParams: true });
  *               message: "An internal server error occurred."
  *               status: 500
  */
-router.post("/", validateSchema(messageRequestSchema), messageController.getAIResponse);
+router.post("/", validateSchema(messageRequestSchema),aiRateLimiter, messageController.getAIResponse);
 
 /**
  * @swagger
