@@ -14,8 +14,8 @@ router.use(authenticate);
 router.use("/chats", apiRateLimiter, chatRoutes);
 router.use("/projects", apiRateLimiter, projectRoutes);
 
-router.use("/system-prompt", checkRole(["admin"]), apiRateLimiter, systemPromptRoutes);
-router.use("/files", checkRole(["admin"]), apiRateLimiter, fileRoutes);
+router.use("/system-prompt", checkRole(["ADMIN"]), apiRateLimiter, systemPromptRoutes);
+router.use("/files", checkRole(["ADMIN"]), apiRateLimiter, fileRoutes);
 
 
 export default router;

@@ -1,17 +1,12 @@
 import express from "express";
 import { getAuth } from "@clerk/express";
+import prisma from "../configs/db.js";
 
 
 const checkRole = (allowedRoles) => {
     return (req, res, next) => {
-        const { userId, sessionClaims } = getAuth(req);
-        if (!userId) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-
-        const userRole = sessionClaims?.metadata?.role || 'user';
-        if (!allowedRoles.includes(userRole)) {
-            return res.status(403).json({ message: "Forbidden" });
+        if (!req.role || !allowedRoles.includes(req.role)) {
+            return res.status(403).json({ message: "Forbidden: Insufficient permissions" });
         }
         next();
     }
