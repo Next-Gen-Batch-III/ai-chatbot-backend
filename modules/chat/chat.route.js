@@ -72,12 +72,27 @@ router.post("/",  validateSchema(chatRequestSchema), aiRateLimiter, chatControll
  * @swagger
  * /api/chats:
  *   get:
- *     summary: Retrieve all chat sessions for the authenticated user.
+ *     summary: Retrieve chat sessions for the authenticated user.
+ *     description: >
+ *       Fetches a paginated list of chats. Allows filtering by project assignment:
+ *       - Omitted: Returns all chats (both standalone and project-bound).
+ *       - `null`: Returns standalone chats only (not assigned to any project).
+ *       - `<uuid>`: Returns chats assigned to a specific project.
  *     tags:
  *       - Chat
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: query
+ *         name: projectId
+ *         required: false
+ *         description: Filter chats by project. Pass a project UUID, the literal string `"null"`, or omit to fetch all.
+ *         schema:
+ *           oneOf:
+ *             - type: string
+ *               format: uuid
+ *             - type: string
+ *               enum: ["null"]
  *       - in: query
  *         name: limit
  *         schema:
@@ -108,7 +123,7 @@ router.post("/",  validateSchema(chatRequestSchema), aiRateLimiter, chatControll
  *                   type: string
  *                   format: date-time
  *                   nullable: true
- *                   description: Cursor for the next page. Returns `null` when there are no more chats to fetch (end of list).
+ *                   description: Cursor for the next page. Returns `null` when there are no more chats to fetch.
  *             example:
  *               chats:
  *                 - id: "064c3b77-d33a-4e9a-a2d7-2dfe99436722"
@@ -120,6 +135,8 @@ router.post("/",  validateSchema(chatRequestSchema), aiRateLimiter, chatControll
  *                   lastMessageAt: "2026-07-30T10:15:00Z"
  *                   isPinned: false
  *               nextCursor: "2026-07-30T10:15:00Z"
+ *       400:
+ *         description: Invalid query parameters (e.g., malformed UUID or cursor date).
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       500:
