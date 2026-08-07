@@ -29,9 +29,9 @@ class ChatController {
     }
 
     async getAllChats(req, res) {
-        const { limit, cursor } = req.query;
+        const { limit, cursor, projectId } = req.query;
         try {
-            const chats = await chatService.getAllChats(req.userId, {limit, cursor});
+            const chats = await chatService.getAllChats(req.userId, {limit, cursor, projectId});
             res.status(200).json({ data: chats });
         } catch (error) {
             console.error("Error fetching all chats:", error);

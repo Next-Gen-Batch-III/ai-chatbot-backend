@@ -49,11 +49,14 @@ class ChatService {
         yield* messageService.getAIResponse(prompt, userId, chat.id);
     }
 
-    async getAllChats(userId, { limit = 20, cursor } = {}) {
+    async getAllChats(userId, { limit = 20, cursor, projectId} = {}) {
+        if(projectId && projectId === 'null') {
+            projectId = null;
+        }
         try {
             const [pinnedChats, chats] = await Promise.all([
                 !cursor ? prisma.chat.findMany({
-                      where: { userId, isPinned: true },
+                      where: { userId, isPinned: true , ...(projectId !== undefined ? { projectId } : {})},
                       orderBy: { lastMessageAt: 'desc' },
                       select: { id: true, title: true, isPinned: true, lastMessageAt: true },
                 }) : [],
@@ -61,6 +64,7 @@ class ChatService {
                     where: { 
                         userId, 
                         isPinned: false,
+                        ...(projectId !== undefined ? { projectId } : {}),
                         ...(cursor ? { lastMessageAt: { lt: new Date(cursor) } } : {})
                      },
                     orderBy: { lastMessageAt: 'desc' },
@@ -86,11 +90,22 @@ class ChatService {
     }
 
     async updateChat(chatId, userId, updateData) {
+        if(updateData.projectId && updateData.projectId === 'null') {
+            updateData.projectId = null;
+        }
+        const { title, projectId } = updateData;
+        const updateFields = {};
+        if (title !== undefined) {
+            updateFields.title = title;
+        }
+        if (projectId !== undefined) {
+            updateFields.projectId = projectId;
+        }
         try {
             const chat = await this.validateChat(chatId, userId);
             const updatedChat = await prisma.chat.update({
                 where: { id: chatId },
-                data: updateData,
+                data: updateFields,
                 select: { id: true, title: true, isPinned: true, lastMessageAt: true },
             });
 
