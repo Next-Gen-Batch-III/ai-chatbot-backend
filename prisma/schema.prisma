@@ -28,6 +28,7 @@ enum UserRole {
 model User {
   clerkId   String   @id @map("clerk_id")
   role      UserRole @default(USER)
+  email     String   @unique
   createdAt DateTime @default(now()) @map("created_at")
   chats     Chat[]
   projects  Project[]

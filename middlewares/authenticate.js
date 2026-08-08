@@ -32,6 +32,7 @@ const authenticate = async (req, res, next) => {
       user = await prisma.user.create({
         data: {
           clerkId: userId,
+          email: email,
         },
       });
 
