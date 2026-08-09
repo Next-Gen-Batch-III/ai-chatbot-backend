@@ -7,7 +7,7 @@ class ProjectController {
         
         try {
             const project = await projectService.createProject(req.userId, title);
-            res.status(201).json(project);
+            res.status(201).json({ data: project });
         } catch (error) {
             console.error("Error creating project:", error);
             if (error instanceof AppError) {
@@ -20,7 +20,7 @@ class ProjectController {
     async getAllProjects(req, res) {
         try {
             const projects = await projectService.getAllProjects(req.userId);
-            res.status(200).json(projects);
+            res.status(200).json({ data: projects });
         } catch (error) {
             console.error("Error fetching projects:", error);
             if (error instanceof AppError) {
@@ -36,7 +36,7 @@ class ProjectController {
 
         try {
             const updatedProject = await projectService.updateProjectTitle(projectId, req.userId, newTitle);
-            res.status(200).json(updatedProject);
+            res.status(200).json({ data: updatedProject });
         } catch (error) {
             console.error("Error updating project title:", error);
             if (error instanceof AppError) {
