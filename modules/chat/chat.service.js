@@ -51,6 +51,7 @@ class ChatService {
         if(projectId && projectId === 'null') {
             projectId = null;
         }
+        limit = parseInt(limit);
         try {
             const [pinnedChats, chats] = await Promise.all([
                 !cursor ? prisma.chat.findMany({

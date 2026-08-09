@@ -34,7 +34,16 @@ class AllowedUserService {
 
     async getAllowedUsers() {
         try {
-            const allowedUsers = await prisma.allowedUser.findMany();
+            const allowedUsers = await prisma.allowedUser.findMany({
+                where: {isActive: true},
+                select: {
+                    id: true,
+                    email: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+                orderBy: { createdAt: 'desc' },
+            });
             return allowedUsers;
         } catch (error) {
             console.error("Error in AllowedUserService.getAllowedUsers:", error);

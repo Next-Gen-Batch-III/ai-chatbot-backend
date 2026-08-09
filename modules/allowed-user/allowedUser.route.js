@@ -324,7 +324,7 @@ router.post(
  *                   updatedAt: "2024-01-01T00:00:00.000Z"
  *                 - id: 2
  *                   email: "another@example.com"
- *                   isActive: false
+ *                   isActive: true
  *                   createdAt: "2024-02-01T00:00:00.000Z"
  *                   updatedAt: "2024-03-01T00:00:00.000Z"
  *       401:
