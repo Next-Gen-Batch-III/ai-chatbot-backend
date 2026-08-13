@@ -32,7 +32,7 @@ class MessageController {
         const { chatId } = req.params;
         try {
             const messages = await messageService.getMessagesByChatId(chatId, req.userId);
-            res.status(200).json(messages);
+            res.status(200).json({ data: messages });
         } catch (error) {
             console.error("Error fetching all messages:", error);
             if(error.statusCode === 500) {

@@ -58,8 +58,11 @@ export const updateChatSchema = z.object({
         chatId: z.string().uuid("Invalid chatId format"),
     }),
     body: z.object({
-        title: z.string().min(1, "Title cannot be empty"),
+        title: z.string().min(1, "Title cannot be empty").optional(),
         projectId: z.union([z.string().uuid(), z.literal('null')]).optional(),
+    }).refine( data => data.title !== undefined || data.projectId !== undefined, {
+        message: "At least one of title or projectId must be provided",
+        path: []
     }),
 });
 

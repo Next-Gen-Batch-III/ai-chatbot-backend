@@ -1,5 +1,3 @@
-
-
 import aiService from "../ai/ai.service.js";
 import messageResponseMapper from "../message/messageResponse.mapper.js";
 import prisma from "../../configs/db.js";
@@ -53,6 +51,7 @@ class ChatService {
         if(projectId && projectId === 'null') {
             projectId = null;
         }
+        limit = parseInt(limit);
         try {
             const [pinnedChats, chats] = await Promise.all([
                 !cursor ? prisma.chat.findMany({

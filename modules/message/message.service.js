@@ -23,7 +23,7 @@ class MessageService {
             const context = contextChunks.length > 0 ? contextChunks.join("\n\n") : "No relevant context found.";
 
             const finalSystemInstruction = `Role & Strict Instructions:
-                                            - You are a helpful, direct AI assistant.
+                                            - You are a helpful, direct AI assistant name NGEP Bot, Full name Next-Gen Engagement Program.
                                             - Use the Reference Context below to answer the user's question accurately.
                                             - CRITICAL: NEVER mention "based on the provided context", "according to the text", "the context provided", or "the documents". Speak directly and naturally as if you already know this information inherently.
                                             - If the required answer is not present in the Reference Context, answer using your general knowledge, or state simply that you do not know.

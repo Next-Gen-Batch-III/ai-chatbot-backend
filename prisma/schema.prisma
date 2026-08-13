@@ -20,13 +20,31 @@ enum FileStatus {
   EMBEDED
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   clerkId   String   @id @map("clerk_id")
+  role      UserRole @default(USER)
+  email     String   @unique
   createdAt DateTime @default(now()) @map("created_at")
   chats     Chat[]
   projects  Project[]
 
   @@map("users")
+}
+
+model AllowedUser {
+  id        Int     @id @default(autoincrement())
+  email     String  @unique
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index(email)
+  @@map("allowed_user")
 }
 
 model Project {

@@ -41,9 +41,9 @@ class ChatController {
 
     async updateChat(req, res) {
         const { chatId } = req.params;
-        const { title } = req.body;
+        const { title, projectId } = req.body;
         try {
-            const updatedChat = await chatService.updateChat(chatId, req.userId, { title });
+            const updatedChat = await chatService.updateChat(chatId, req.userId, { title, projectId });
             res.status(200).json({ data: updatedChat });
         } catch (error) {
             console.error("Error updating chat:", error);
